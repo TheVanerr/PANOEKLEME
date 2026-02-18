@@ -369,8 +369,10 @@
       updateZoomDisplay();
     }
 
-    // Drag + Wheel zoom
+    // Drag + Wheel zoom + Touch support
     document.querySelectorAll('.svg-container').forEach((container, index) => {
+
+      // === MOUSE EVENTS ===
       container.addEventListener('mousedown', (e) => {
         if (!tabData[index].loaded) return;
         isDragging = true;
@@ -404,6 +406,97 @@
         updateTransform(index);
         updateZoomDisplay();
       }, { passive: false });
+
+      // === TOUCH EVENTS (mobil destek) ===
+      let touchStartX = 0, touchStartY = 0;
+      let lastTouchDist = 0;
+      let lastTouchMidX = 0, lastTouchMidY = 0;
+      let isTouchDragging = false;
+      let isPinching = false;
+
+      container.addEventListener('touchstart', (e) => {
+        if (!tabData[index].loaded) return;
+        e.preventDefault();
+
+        if (e.touches.length === 1) {
+          // Tek parmak — sürükleme
+          isTouchDragging = true;
+          isPinching = false;
+          touchStartX = e.touches[0].clientX - tabData[index].panX;
+          touchStartY = e.touches[0].clientY - tabData[index].panY;
+        } else if (e.touches.length === 2) {
+          // İki parmak — pinch zoom
+          isTouchDragging = false;
+          isPinching = true;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+          lastTouchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          lastTouchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        }
+      }, { passive: false });
+
+      container.addEventListener('touchmove', (e) => {
+        if (!tabData[index].loaded || index !== currentTab) return;
+        e.preventDefault();
+
+        if (e.touches.length === 1 && isTouchDragging && !isPinching) {
+          // Tek parmak sürükleme
+          tabData[index].panX = e.touches[0].clientX - touchStartX;
+          tabData[index].panY = e.touches[0].clientY - touchStartY;
+          updateTransform(index);
+        } else if (e.touches.length === 2 && isPinching) {
+          // Pinch zoom
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (lastTouchDist > 0) {
+            const zoomFactor = dist / lastTouchDist;
+            const newScale = Math.max(0.1, Math.min(10, tabData[index].scale * zoomFactor));
+
+            // Zoom'u iki parmağın ortasına doğru yap
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const containerRect = container.getBoundingClientRect();
+            const originX = midX - containerRect.left;
+            const originY = midY - containerRect.top;
+
+            const scaleChange = newScale / tabData[index].scale;
+            tabData[index].panX = originX - scaleChange * (originX - tabData[index].panX);
+            tabData[index].panY = originY - scaleChange * (originY - tabData[index].panY);
+            tabData[index].scale = newScale;
+
+            updateTransform(index);
+            updateZoomDisplay();
+          }
+
+          lastTouchDist = dist;
+          lastTouchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          lastTouchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        }
+      }, { passive: false });
+
+      container.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+          isTouchDragging = false;
+          isPinching = false;
+          lastTouchDist = 0;
+        } else if (e.touches.length === 1) {
+          // Pinch bitti, tek parmağa geçiş — sürüklemeye devam
+          isPinching = false;
+          isTouchDragging = true;
+          touchStartX = e.touches[0].clientX - tabData[index].panX;
+          touchStartY = e.touches[0].clientY - tabData[index].panY;
+          lastTouchDist = 0;
+        }
+      }, { passive: false });
+
+      container.addEventListener('touchcancel', () => {
+        isTouchDragging = false;
+        isPinching = false;
+        lastTouchDist = 0;
+      });
     });
 
     // Sayfa açılınca SVG'leri otomatik getir
