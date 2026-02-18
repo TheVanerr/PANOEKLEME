@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teknik Çizim Görüntüleyici</title>
+
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { font-family: 'Space Grotesk', sans-serif; }
+
+    .svg-container {
+      cursor: grab;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+    .svg-container:active { cursor: grabbing; }
+
+    .svg-container {
+      min-height: 500px;
+    }
+
+    .svg-container svg {
+      max-width: none !important;
+      max-height: none !important;
+    }
+
+    .tab-active {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(30, 58, 95, 0.4);
+    }
+    .tab-inactive {
+      background: #e8eef5;
+      color: #4a6785;
+    }
+    .tab-inactive:hover { background: #d0dce8; }
+
+    .zoom-btn { transition: all 0.2s ease; }
+    .zoom-btn:hover { transform: scale(1.1); }
+    .zoom-btn:active { transform: scale(0.95); }
+  </style>
+</head>
+
+<body class="h-full bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200">
+  <div id="app" class="h-full w-full flex flex-col overflow-auto">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white p-4 shadow-xl">
+      <h1 id="page-title" class="text-2xl font-bold text-center tracking-wide">Teknik Çizim Görüntüleyici</h1>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="flex justify-center gap-2 p-4 bg-white/50 backdrop-blur-sm shadow-sm">
+      <button onclick="switchTab(0)" id="tab-0"
+        class="tab-active px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Egzos Fanı
+      </button>
+
+      <button onclick="switchTab(1)" id="tab-1"
+        class="tab-inactive px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        İnterlock Kilit
+      </button>
+
+      <button onclick="switchTab(2)" id="tab-2"
+        class="tab-inactive px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+        </svg>
+        Yağ Sıyırıcı
+      </button>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="flex-1 p-4 flex flex-col min-h-0">
+
+      <!-- Tab 0 -->
+      <div id="content-0" class="tab-content flex-1 flex flex-col min-h-0">
+        <div class="rounded-2xl flex-1 flex flex-col bg-white/70 backdrop-blur-sm min-h-0 p-3">
+          <div id="svg-viewer-0" class="w-full h-full flex flex-col min-h-0">
+            <div class="svg-container flex-1 relative bg-white rounded-xl shadow-inner min-h-0" id="svg-container-0">
+              <div id="svg-content-0" class="absolute" style="left:0; top:0; transform-origin: 0 0;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 1 -->
+      <div id="content-1" class="tab-content hidden flex-1 flex flex-col min-h-0">
+        <div class="rounded-2xl flex-1 flex flex-col bg-white/70 backdrop-blur-sm min-h-0 p-3">
+          <div id="svg-viewer-1" class="w-full h-full flex flex-col min-h-0">
+            <div class="svg-container flex-1 relative bg-white rounded-xl shadow-inner min-h-0" id="svg-container-1">
+              <div id="svg-content-1" class="absolute" style="left:0; top:0; transform-origin: 0 0;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div id="content-2" class="tab-content hidden flex-1 flex flex-col min-h-0">
+        <div class="rounded-2xl flex-1 flex flex-col bg-white/70 backdrop-blur-sm min-h-0 p-3">
+          <div id="svg-viewer-2" class="w-full h-full flex flex-col min-h-0">
+            <div class="svg-container flex-1 relative bg-white rounded-xl shadow-inner min-h-0" id="svg-container-2">
+              <div id="svg-content-2" class="absolute" style="left:0; top:0; transform-origin: 0 0;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoom Controls -->
+      <div id="zoom-controls" class="mt-4 flex items-center justify-center gap-3 p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg">
+        <button onclick="zoomOut()" class="zoom-btn w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-xl flex items-center justify-center shadow-md hover:shadow-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
+          </svg>
+        </button>
+
+        <div class="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
+          <span class="text-slate-500 text-sm">Zoom:</span>
+          <span id="zoom-level" class="font-bold text-slate-700 min-w-[4ch] text-center">100%</span>
+        </div>
+
+        <button onclick="zoomIn()" class="zoom-btn w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-xl flex items-center justify-center shadow-md hover:shadow-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
+          </svg>
+        </button>
+
+        <button onclick="resetView()" class="zoom-btn w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center shadow-md hover:shadow-lg ml-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const defaultConfig = {
+      page_title: 'Teknik Çizim Görüntüleyici',
+      primary_color: '#1e3a5f',
+      secondary_color: '#e8eef5',
+      text_color: '#334155',
+      accent_color: '#2d5a87',
+      background_color: '#f1f5f9'
+    };
+
+    // 1) SVG dosyalarını buraya koyacaksın (yolları değiştirmen yeterli)
+    const svgUrls = [
+      "./svgs/egzos-fani.svg",
+      "./svgs/interlock-kilit.svg",
+      "./svgs/yag-siyirici.svg"
+    ];
+
+    let currentTab = 0;
+    const tabData = [
+      { scale: 1, panX: 0, panY: 0, loaded: false, naturalW: 0, naturalH: 0 },
+      { scale: 1, panX: 0, panY: 0, loaded: false, naturalW: 0, naturalH: 0 },
+      { scale: 1, panX: 0, panY: 0, loaded: false, naturalW: 0, naturalH: 0 }
+    ];
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+
+    function switchTab(index) {
+      document.querySelectorAll('.tab-content').forEach((content, i) => {
+        content.classList.toggle('hidden', i !== index);
+      });
+
+      for (let i = 0; i < 3; i++) {
+        const tab = document.getElementById(`tab-${i}`);
+        if (i === index) {
+          tab.classList.remove('tab-inactive');
+          tab.classList.add('tab-active');
+        } else {
+          tab.classList.remove('tab-active');
+          tab.classList.add('tab-inactive');
+        }
+      }
+
+      currentTab = index;
+      updateZoomDisplay();
+
+      // Sekme değiştiğinde, eğer SVG yüklüyse boyutu yeniden hesapla
+      if (tabData[index].loaded) {
+        setTimeout(() => fitToContent(index), 50);
+      }
+    }
+
+    function updateTransform(tabIndex) {
+      const data = tabData[tabIndex];
+      const svgContent = document.getElementById(`svg-content-${tabIndex}`);
+      svgContent.style.transform = `translate(${data.panX}px, ${data.panY}px) scale(${data.scale})`;
+    }
+
+    function updateZoomDisplay() {
+      const zoomLevel = document.getElementById('zoom-level');
+      zoomLevel.textContent = `${Math.round(tabData[currentTab].scale * 100)}%`;
+    }
+
+    function zoomIn() {
+      if (!tabData[currentTab].loaded) return;
+      tabData[currentTab].scale = Math.min(tabData[currentTab].scale * 1.25, 10);
+      updateTransform(currentTab);
+      updateZoomDisplay();
+    }
+
+    function zoomOut() {
+      if (!tabData[currentTab].loaded) return;
+      tabData[currentTab].scale = Math.max(tabData[currentTab].scale / 1.25, 0.1);
+      updateTransform(currentTab);
+      updateZoomDisplay();
+    }
+
+    function resetView() {
+      if (!tabData[currentTab].loaded) return;
+      fitToContent(currentTab);
+    }
+
+    // Canva SVG'lerinde bazen viewBox olmaz. Yoksa set etmeye çalışıyoruz.
+    function ensureViewBox(svgEl) {
+      if (svgEl.getAttribute("viewBox")) return;
+
+      const wRaw = svgEl.getAttribute("width");
+      const hRaw = svgEl.getAttribute("height");
+
+      const w = wRaw ? parseFloat(String(wRaw).replace(/[^\d.]/g, "")) : null;
+      const h = hRaw ? parseFloat(String(hRaw).replace(/[^\d.]/g, "")) : null;
+
+      if (w && h) {
+        svgEl.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      }
+    }
+
+    function fitToContent(tabIndex) {
+      const container = document.getElementById(`svg-container-${tabIndex}`);
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const cw = rect.width;
+      const ch = rect.height;
+
+      if (cw <= 0 || ch <= 0) {
+        setTimeout(() => fitToContent(tabIndex), 200);
+        return;
+      }
+
+      const nw = tabData[tabIndex].naturalW;
+      const nh = tabData[tabIndex].naturalH;
+      if (nw <= 0 || nh <= 0) return;
+
+      const padding = 0.92;
+      const scaleX = (cw / nw) * padding;
+      const scaleY = (ch / nh) * padding;
+      const scale = Math.min(scaleX, scaleY);
+
+      const panX = (cw - nw * scale) / 2;
+      const panY = (ch - nh * scale) / 2;
+
+      tabData[tabIndex].scale = scale;
+      tabData[tabIndex].panX = panX;
+      tabData[tabIndex].panY = panY;
+
+      updateTransform(tabIndex);
+      if (tabIndex === currentTab) updateZoomDisplay();
+    }
+
+    function loadSVG(tabIndex, svgText) {
+      const svgContentEl = document.getElementById(`svg-content-${tabIndex}`);
+      svgContentEl.innerHTML = svgText;
+
+      const svg = svgContentEl.querySelector('svg');
+      if (!svg) return;
+
+      ensureViewBox(svg);
+
+      // viewBox'tan doğal boyutları al
+      const vb = svg.getAttribute('viewBox');
+      let nw = 1440, nh = 810;
+      if (vb) {
+        const parts = vb.split(/[\s,]+/).map(Number);
+        nw = parts[2] || nw;
+        nh = parts[3] || nh;
+      } else {
+        const wAttr = svg.getAttribute('width');
+        const hAttr = svg.getAttribute('height');
+        if (wAttr) nw = parseFloat(String(wAttr).replace(/[^\d.]/g, '')) || nw;
+        if (hAttr) nh = parseFloat(String(hAttr).replace(/[^\d.]/g, '')) || nh;
+      }
+
+      // SVG'ye sabit piksel boyutu ver — kaldırırsan 0x0 olur!
+      svg.setAttribute('width', nw);
+      svg.setAttribute('height', nh);
+      svg.style.display = 'block';
+
+      tabData[tabIndex].naturalW = nw;
+      tabData[tabIndex].naturalH = nh;
+      tabData[tabIndex].loaded = true;
+      tabData[tabIndex].scale = 1;
+      tabData[tabIndex].panX = 0;
+      tabData[tabIndex].panY = 0;
+
+      updateTransform(tabIndex);
+
+      setTimeout(() => fitToContent(tabIndex), 150);
+    }    async function loadAllSvgs() {
+      for (let i = 0; i < svgUrls.length; i++) {
+        try {
+          // Önce fetch dene
+          const res = await fetch(svgUrls[i], { cache: "no-store" });
+          if (!res.ok) throw new Error(`SVG yüklenemedi: ${svgUrls[i]} (HTTP ${res.status})`);
+          const svgText = await res.text();
+          loadSVG(i, svgText);
+        } catch (err) {
+          console.warn("Fetch başarısız, XMLHttpRequest deneniyor:", err);
+          // file:// protokolünde fetch çalışmayabilir, XMLHttpRequest ile dene
+          try {
+            const svgText = await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open("GET", svgUrls[i], true);
+              xhr.onload = function() {
+                if (xhr.status === 0 || xhr.status === 200) {
+                  resolve(xhr.responseText);
+                } else {
+                  reject(new Error(`XHR hata: ${xhr.status}`));
+                }
+              };
+              xhr.onerror = function() {
+                // file:// protokolünde status 0 olabilir ama responseText dolu olabilir
+                if (xhr.responseText) {
+                  resolve(xhr.responseText);
+                } else {
+                  reject(new Error("XHR başarısız"));
+                }
+              };
+              xhr.send();
+            });
+            loadSVG(i, svgText);
+          } catch (err2) {
+            console.error("SVG yüklenemedi:", err2);
+            // Son çare: <img> etiketi ile göster
+            const el = document.getElementById(`svg-content-${i}`);
+            if (el) {
+              el.innerHTML = `<img src="${svgUrls[i]}" style="width:100%;height:100%;object-fit:contain;" alt="SVG Çizim" />`;
+              tabData[i].loaded = true;
+            }
+          }
+        }
+      }
+
+      // İlk sekmeyi göster
+      switchTab(0);
+      updateZoomDisplay();
+    }
+
+    // Drag + Wheel zoom
+    document.querySelectorAll('.svg-container').forEach((container, index) => {
+      container.addEventListener('mousedown', (e) => {
+        if (!tabData[index].loaded) return;
+        isDragging = true;
+        startX = e.clientX - tabData[index].panX;
+        startY = e.clientY - tabData[index].panY;
+        container.style.cursor = 'grabbing';
+      });
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDragging || index !== currentTab) return;
+        tabData[index].panX = e.clientX - startX;
+        tabData[index].panY = e.clientY - startY;
+        updateTransform(index);
+      });
+
+      container.addEventListener('mouseup', () => {
+        isDragging = false;
+        container.style.cursor = 'grab';
+      });
+
+      container.addEventListener('mouseleave', () => {
+        isDragging = false;
+        container.style.cursor = 'grab';
+      });
+
+      container.addEventListener('wheel', (e) => {
+        if (!tabData[index].loaded) return;
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        tabData[index].scale = Math.max(0.1, Math.min(10, tabData[index].scale * delta));
+        updateTransform(index);
+        updateZoomDisplay();
+      }, { passive: false });
+    });
+
+    // Sayfa açılınca SVG'leri otomatik getir
+    document.addEventListener("DOMContentLoaded", () => {
+      loadAllSvgs();
+    });
+
+    // Element SDK initialization
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          const titleEl = document.getElementById('page-title');
+          titleEl.textContent = config.page_title || defaultConfig.page_title;
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => { config.primary_color = value; window.elementSdk.setConfig({ primary_color: value }); }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => { config.secondary_color = value; window.elementSdk.setConfig({ secondary_color: value }); }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['page_title', config.page_title || defaultConfig.page_title]
+        ])
+      });
+    }
+  </script>
+</body>
+</html>
